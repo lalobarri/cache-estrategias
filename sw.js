@@ -9,8 +9,8 @@ const CACHE_INMUTABLE_NAME='inmutable-v1';
 self.addEventListener('install', e =>{
     //Cuando se instala se guardar las cosas necesarias
     const cacheProm = caches.open(CACHE_STATIC_NAME)
-        .then( caches =>{//Se regresa una promesa
-            return caches.addAll([
+        .then( cache =>{//Se regresa una promesa
+            return cache.addAll([
             '/',
             '/index.html',
             '/css/style.css',
@@ -20,13 +20,11 @@ self.addEventListener('install', e =>{
         });   
    
     const cacheInmutable = caches.open( CACHE_INMUTABLE_NAME)
-        .then( cache => {
-            return cache.add('https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css');
-        });
+        .then( cache => cache.add('https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css'));
 
-    e.waitUntil( Promise.all([cacheProm, cacheInmutable]));
+    e.waitUntil( Promise.all([cacheProm, cacheInmutable])); //Ambas promesas se hagan simultaneamente
 
-    
+
 
 });
 
@@ -38,11 +36,13 @@ self.addEventListener('fetch', e =>{
             //No existe el archivo
             //tengo que ir a la web
             //Se toma en consideración que el cache dinámico puede crecer muy grande 
-            console.log('No existe', e.request.url);
-            return fetch( e.request).then(newResp => {
+            
+            return fetch( e.request ). then( newResp => {
+                
                 caches.open( CACHE_DYNAMIC_NAME)
                 .then( cache => {
                     cache.put( e.request, newResp);    
+                    
                 });
                 return newResp.clone;
             });
