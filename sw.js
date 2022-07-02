@@ -5,6 +5,7 @@
 const CACHE_STATIC_NAME = 'static-v1';
 const CACHE_DYNAMIC_NAME = 'dinamic-v1';
 const CACHE_INMUTABLE_NAME='inmutable-v1';
+const CACHE_DINAMIC_LIMIT = 50;
 
 self.addEventListener('install', e =>{
     //Cuando se instala se guardar las cosas necesarias
@@ -30,6 +31,28 @@ self.addEventListener('install', e =>{
 
 
 self.addEventListener('fetch', e =>{
+    
+    
+
+    // 3- Network with cache fallback
+    const respueta = fetch( e.request ).then( res => {
+
+        console.log('Fetch', res);
+
+        caches.open(CACHE_DYNAMIC_NAME)
+        .then( cache => {
+            cache.put( e.request, res );
+            limpiarCache(CACHE_DYNAMIC_NAME, CACHE_DINAMIC_LIMIT);
+        });
+        return res.clone();
+    }).catch( err => {
+        return caches.match(e.request);
+    });
+
+    e.respondWith( respueta );
+
+
+    /*  //Se comenta código de estrategía anterior
     const respuesta = caches.match(e.request)
         .then(res => {
             if( res ) return res;
@@ -42,12 +65,14 @@ self.addEventListener('fetch', e =>{
                 caches.open( CACHE_DYNAMIC_NAME)
                 .then( cache => {
                     cache.put( e.request, newResp);    
-                    
+                    limpiarCache( CACHE_DYNAMIC_NAME, 50);
                 });
                 return newResp.clone;
             });
         }); //Termina definición de constante respuesta
     e.respondWith( respuesta);
+
+    */
 });
 
 
